@@ -26,8 +26,8 @@ void setup() {
   size(700, 700);
   
   for (int i = 0; i < 100; i++) {
-    entities.add(new Predator());
-    entities.add(new Prey());
+    entities.add(new Entity(true));
+    entities.add(new Entity(false));
   }
   
   selected = entities.get(0);
