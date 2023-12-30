@@ -2,6 +2,8 @@ ArrayList<Entity> entities = new ArrayList<Entity>();
 ArrayList<Entity> nextEntities = new ArrayList<Entity>();
 Entity selected;
 
+int MAX_POPULATION = 200;
+
 void draw() {
   background(0);
   
@@ -15,7 +17,8 @@ void draw() {
     entity.draw();
     
     if (entity.isAlive) nextEntities.add(entity);
-    if (entity.isSplitting) nextEntities.add(entity.split());
+    if (entity.isSplitting && (entities.size() < MAX_POPULATION)) nextEntities.add(entity.split());
+    
   }
   
   entities = nextEntities;

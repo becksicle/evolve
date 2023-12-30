@@ -114,13 +114,13 @@ class Entity {
       if (speed <= 0) energy++; // figure out units
       if ((millis() - birthTime) > REPRODUCTION_TIME) this.isSplitting = true;
     }
-
   }
   
   Entity split() {
     this.foodConsumed = 0;
     this.isSplitting = false;
     this.birthTime = millis();
-    return new Entity(isPredator, this.position.x, this.position.y);
+    this.position.x -= RAD;
+    return new Entity(isPredator, this.position.x+RAD, this.position.y);
   }
 }
