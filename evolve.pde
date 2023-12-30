@@ -9,11 +9,13 @@ void draw() {
   
   for (int i = 0; i < entities.size(); i++) {
     Entity entity = entities.get(i);
+    if (!entity.isAlive) continue;
     
     entity.update(entities);
     entity.draw();
     
     if (entity.isAlive) nextEntities.add(entity);
+    if (entity.isSplitting) nextEntities.add(entity.split());
   }
   
   entities = nextEntities;
@@ -23,8 +25,10 @@ void setup() {
   //Brain b = new Brain();
   size(700, 700);
   
-  entities.add(new Predator(500, 500));
-  entities.add(new Prey(100, 100));
+  for (int i = 0; i < 100; i++) {
+    entities.add(new Predator());
+    entities.add(new Prey());
+  }
   
   selected = entities.get(0);
 }
