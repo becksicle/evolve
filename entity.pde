@@ -19,7 +19,7 @@ class Entity {
   static final float ENERGY_ON_EAT = 20;
   
   // time required to digest prey in milliseconds
-  static final float DIGESTION_TIME = 1000;
+  static final float DIGESTION_TIME = 750;
   
   // how long prey need to stay alive to split
   static final float REPRODUCTION_TIME = 3500;
@@ -32,7 +32,7 @@ class Entity {
   static final float FOV_STEP = 0.174533; // 10 degrees
   
   // how far an entity can see within their FOV in pixels
-  static final float VIEW_DISTANCE = 50; 
+  static final float VIEW_DISTANCE = 150; 
 
   boolean isPredator;
   float birthTime = millis();
@@ -71,16 +71,32 @@ class Entity {
           round((2*PREY_FOV) / FOV_STEP)+1;
   }
   
-  void draw() {
+  void draw(boolean isSelected) {
     fill(col);
     circle(position.x, position.y, RAD);
+    
+    float fov = (isPredator ? PREDATOR_FOV : PREY_FOV);
+    
+    if (isSelected) {
+      stroke(100, 100, 100);
+      for(int i=0; i < calcNumFOVRays(); i++) {
+        float angle = i * FOV_STEP;
+        // 0 should be -fov
+        angle = angle - fov;
+        angle += direction;
+        line(position.x, position.y, position.x + VIEW_DISTANCE*cos(angle), position.y+VIEW_DISTANCE*sin(angle));
+      }
+      stroke(255, 255, 0);
+      line(position.x, position.y, position.x + (10+VIEW_DISTANCE)*cos(direction), position.y+(10+VIEW_DISTANCE)*sin(direction));
+      
+    }
   }
   
   void move(ArrayList<Entity> entities) {
     brain.calculateOutput();
     
-    float direction = brain.outputs[0].val;
-    float speed = brain.outputs[1].val;
+    direction = 2 * PI * brain.outputs[0].val;
+    speed = 2 * brain.outputs[1].val;
     
     if (speed <= 0) return;
     
@@ -105,8 +121,7 @@ class Entity {
         if ((this.isPredator == other.isPredator) || 
             (this.isPredator && this.isDigesting()) || 
             (other.isPredator && other.isDigesting())) {
-          this.direction += PI;
-          other.direction += PI;
+          // nothing for now
         } else {
           if (this.isPredator) {
             other.isAlive = false;
@@ -132,11 +147,14 @@ class Entity {
     brain.resetInputs();
     
     for(Entity test : entities) {
+      if(test == this) continue;     
+      
       float dist = position.dist(test.position);
+        
       if(dist > VIEW_DISTANCE) continue;
       
       // calculate angle from center of entity to center of test entity
-      float angle = atan2(test.position.y - selected.position.y, test.position.x - selected.position.x);
+      float angle = normalizeAngle(atan2(test.position.y - this.position.y, test.position.x - this.position.x));
       
       // adjust for the direction the entity is facing
       angle -= direction;
@@ -154,17 +172,17 @@ class Entity {
       int floorIndex = (int)findex;
       int ceilIndex = floorIndex+1;
       
-      if(isPredator) {
+      if(test.isPredator) {
         // prey will take the first inputs, and predator will come next
         int numRays = calcNumFOVRays();
         floorIndex += numRays;
         ceilIndex += numRays;
       }
       
-      float normDist = dist / PVector.dist(new PVector(0, 0), new PVector(width, height));
+      float normDist = (VIEW_DISTANCE - dist) / VIEW_DISTANCE;
       
       brain.inputs[floorIndex].val = max(brain.inputs[floorIndex].val, normDist);
-      brain.inputs[ceilIndex].val = max(brain.inputs[ceilIndex].val, normDist); 
+      brain.inputs[ceilIndex].val = max(brain.inputs[ceilIndex].val, normDist);
     }
     
   }
@@ -189,6 +207,15 @@ class Entity {
     this.isSplitting = false;
     this.birthTime = millis();
     this.position.x -= RAD;
-    return new Entity(isPredator, this.position.x+RAD, this.position.y);
+    Entity e = new Entity(isPredator, this.position.x+RAD, this.position.y);
+    e.brain = new Brain(brain);
+    return e;
   }
+}
+
+float normalizeAngle(float angle) {
+  float  tp = 2.0*PI;
+  angle = angle % tp;
+  if(angle < 0) angle = tp + angle;
+  return angle;
 }

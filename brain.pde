@@ -13,6 +13,25 @@ class Neuron {
   Neuron() {
   }
   
+  Neuron(Neuron other) {
+    if(other.inputs != null) {
+      inputs = new Neuron[other.inputs.length];
+      for(int i=0; i < inputs.length; i++) {
+        inputs[i] = new Neuron(other.inputs[i]);
+      }
+    }
+    
+    if(other.weights != null) {
+      weights = new float[other.weights.length];
+      for(int i=0; i < weights.length; i++) {
+        weights[i] = other.weights[i];
+      }
+    }
+    
+    bias = other.bias;
+    val = other.val;
+  }
+  
   void calculateValue() {
     float v = 0;
     for(int i=0; i < inputs.length; i++) {
@@ -40,6 +59,18 @@ class Brain {
     outputs = new Neuron[2];
     for (int i=0; i < outputs.length; i++) {
       outputs[i] = new Neuron(inputs, randomWeights(inputs.length), randomBias());
+    }
+  }
+  
+  Brain(Brain other) {
+    inputs = new Neuron[other.inputs.length];
+    for(int i=0; i < inputs.length; i++) {
+      inputs[i] = new Neuron(other.inputs[i]);
+    }
+    
+    outputs = new Neuron[other.outputs.length];
+    for(int i=0; i < outputs.length; i++) {
+      outputs[i] = new Neuron(other.outputs[i]);
     }
   }
   
