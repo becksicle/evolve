@@ -40,6 +40,28 @@ class Neuron {
     v += bias;
     val = 1 / (1 + exp(-v));
   }
+  
+  void mutate() {
+    // pick an input
+    int i = (int)random(inputs.length);
+    
+    // generate the mutation
+    float mutation = random(-0.25, 0.25);
+    
+    weights[i] += mutation;
+    weights[i] = min(1, max(0, weights[i]));
+  }
+  
+  String toString() {
+
+    StringBuffer sb = new StringBuffer();
+    sb.append("weights: ");
+    for(int i=0; i < weights.length; i++) {
+      sb.append(nf(weights[i], 0, 2)).append(" ");
+    }
+    sb.append("bias: ").append(nf(bias, 0, 2));
+    return sb.toString();
+  }
 }
 
 class Brain {
@@ -83,18 +105,32 @@ class Brain {
   float[] randomWeights(int size) {
     float[] weights = new float[size];
     for(int i=0; i < size; i++) { 
-      weights[i] = randomGaussian();
+      weights[i] = random(1);
     }
     return weights;
   }
   
   float randomBias() {
-    return randomGaussian();
+    return random(1);
   }
   
   void resetInputs() {
     for(Neuron input : inputs) {
       input.val = 0;
     }
+  }
+  
+  void mutate() {
+    for(Neuron n : outputs) {
+      n.mutate();
+    }
+  }
+  
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    for(Neuron n : outputs) {
+      sb.append(n).append("\n");
+    }
+    return sb.toString();
   }
 }

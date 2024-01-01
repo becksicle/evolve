@@ -16,7 +16,7 @@ class Entity {
   static final float RAD = 20;
   
   // energy gained when predator eats prey
-  static final float ENERGY_ON_EAT = 20;
+  static final float ENERGY_ON_EAT = 100;
   
   // time required to digest prey in milliseconds
   static final float DIGESTION_TIME = 750;
@@ -38,7 +38,7 @@ class Entity {
   float birthTime = millis();
   float direction = random(TWO_PI);
   float speed = 1;
-  float energy = random(250, 500); 
+  float energy = 500; 
   float lastEatTime;
   PVector position;
   boolean isAlive = true;
@@ -209,6 +209,9 @@ class Entity {
     this.position.x -= RAD;
     Entity e = new Entity(isPredator, this.position.x+RAD, this.position.y);
     e.brain = new Brain(brain);
+    e.brain.mutate();
+    
+    println("brain before: "+brain+" brain after: "+e.brain);
     return e;
   }
 }
