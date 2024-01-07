@@ -35,25 +35,27 @@ class Neuron {
   void calculateValue() {
     float v = 0;
     for(int i=0; i < inputs.length; i++) {
+      //println(i+" : "+inputs[i].val + " x "+weights[i]);
       v += inputs[i].val * weights[i];
     }
+    //println("bias: "+bias);
     v += bias;
-    val = 1 / (1 + exp(-v));
+    val = min(1, max(-1, v));
+    //println("v = "+val);
+    //val = 1 / (1 + exp(-v));
+    //println(this.toString()+" :raw v: "+v + " val: "+val);
   }
   
   void mutate() {
-    // pick an input
-    int i = (int)random(inputs.length);
+    for(int i=0; i < inputs.length; i++) {
+      float mutation = random(-0.1, 0.1);
+      weights[i] += mutation;
+      weights[i] = min(1, max(-1, weights[i]));
+    }
     
-    // generate the mutation
-    float mutation = random(-0.25, 0.25);
-    
-    weights[i] += mutation;
-    weights[i] = min(1, max(0, weights[i]));
   }
   
   String toString() {
-
     StringBuffer sb = new StringBuffer();
     sb.append("weights: ");
     for(int i=0; i < weights.length; i++) {
@@ -68,6 +70,8 @@ class Brain {
   // one set for all the prey within FOV and 
   // one set for all the predators within FOV
   Neuron[] inputs;
+  
+  Neuron[] hiddenLayer;
   
   // 1 for direction, 1 for speed
   Neuron[] outputs;
@@ -105,13 +109,15 @@ class Brain {
   float[] randomWeights(int size) {
     float[] weights = new float[size];
     for(int i=0; i < size; i++) { 
-      weights[i] = random(1);
+      weights[i] = random(-1, 1);
     }
+    
+    //weights[int(random(weights.length))] = random(1);
     return weights;
   }
   
   float randomBias() {
-    return random(1);
+    return random(-1, 1);
   }
   
   void resetInputs() {

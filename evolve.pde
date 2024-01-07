@@ -2,19 +2,21 @@ ArrayList<Entity> entities = new ArrayList<Entity>();
 ArrayList<Entity> nextEntities = new ArrayList<Entity>();
 Entity selected;
 
-int MAX_PREDATORS = 100;
+int MAX_PREDATORS = 40;
 int MAX_PREY = 100;
 
 int numPredators = 0;
 int numPrey = 0;
 
+boolean drawBrain = true;
+boolean drawSelected = true;
+
 void setup_() {
    size(700, 700);
-   entities.add(new Entity(false, 120, 100));
-   entities.add(new Entity(true, 100, 100));
+   //entities.add(new Entity(false, 120, 100));
+   //entities.add(new Entity(true, 100, 100));
    entities.add(new Entity(true, 150, 120));
    entities.add(new Entity(false, 80, 80));
-
 
    selected = entities.get(0);
 }
@@ -27,12 +29,13 @@ void draw_() {
   
   fill(255);
   textSize(20);
-  text("direction: "+degrees(selected.direction)+" speed: "+selected.speed+" brain 0: "+selected.brain.outputs[0].val, 10, 50);
+  text("direction: "+nf(degrees(selected.direction), 0, 2)+" speed: "+nf(selected.speed, 0, 2), 10, 50);
   
   drawBrain();
 }
 
 void drawBrain() {
+  if(!drawBrain) return;
   stroke(255, 255, 255);
   int mid = selected.brain.inputs.length/2;
   for (int i=0; i < mid; i++) {
@@ -55,13 +58,28 @@ void setup() {
     entities.add(new Entity(false));
     numPrey++;
   }
-  selectRandom();
+  
+   selectRandom();
 }
 
 void draw() {
   background(0);
   
   nextEntities = new ArrayList<Entity>();
+  
+  if(numPredators > MAX_PREDATORS || numPrey > MAX_PREY) {
+      Entity oldestPrey = null;
+      Entity oldestPredator = null;
+      for(Entity e : entities) {
+        if(e.isPredator && (oldestPredator == null || oldestPredator.birthTime > e.birthTime)) {
+          oldestPredator = e;
+        } else if (!e.isPredator && (oldestPrey == null || oldestPrey.birthTime > e.birthTime)) {
+          oldestPrey = e;
+        }
+      }
+      if(numPredators > MAX_PREDATORS) oldestPredator.isAlive = false;
+      if(numPrey > MAX_PREY) oldestPrey.isAlive = false;
+  }
   
   for (int i = 0; i < entities.size(); i++) {
     Entity entity = entities.get(i);
@@ -77,13 +95,14 @@ void draw() {
     }
     
     entity.update(entities);
-    entity.draw(entity == selected);
+    noStroke();
+    entity.draw(drawSelected && (entity == selected));
     
     if (entity.isSplitting) {
-      if(entity.isPredator && numPredators < MAX_PREDATORS) {
+      if(entity.isPredator) { 
         nextEntities.add(entity.split());
         numPredators++;
-      } else if (!entity.isPredator && numPrey < MAX_PREY) {
+      } else if (!entity.isPredator) {
         nextEntities.add(entity.split());
         numPrey++;
       }
@@ -99,7 +118,10 @@ void draw() {
   fill(255);
   textSize(20);
   text("prey: "+numPrey+" predators: "+numPredators, 10, 20);
-  text("direction: "+degrees(selected.direction)+" speed: "+selected.speed+" brain 0: "+selected.brain.outputs[0].val, 10, 50);
+  
+  if(drawSelected) {
+    text("direction: "+int(degrees(selected.direction))+" speed: "+nf(selected.speed, 0, 2)+" energy: "+selected.energy, 10, 50);
+  }
   
   drawBrain();
 }
@@ -107,12 +129,22 @@ void draw() {
 void mousePressed() {
   
   if(keyPressed) {
-    selected.position.x = mouseX;
-    selected.position.y = mouseY;
+    if(keyCode == SHIFT) {
+      selected.position.x = mouseX;
+      selected.position.y = mouseY;
+    } else {
+      float angle = normalizeAngle(atan2(mouseY - selected.position.y, mouseX - selected.position.x));
+      selected.direction = angle;
+    }
   } else {
-    float angle = normalizeAngle(atan2(mouseY - selected.position.y, mouseX - selected.position.x));
-    //float angle = atan2(mouseY - selected.position.y, mouseX - selected.position.x);
-    selected.direction = angle;
+    
+    PVector m = new PVector(mouseX, mouseY);
+    for(Entity entity : entities) {
+      if(entity.position.dist(m) < entity.RAD) {
+        selected = entity;
+        break;
+      }
+    }
   }
   selected.updateBrain(entities);
 }
@@ -124,5 +156,17 @@ void selectRandom() {
 void keyPressed() {
   if (keyCode == UP) {
     selectRandom();
+  }
+  
+  if (key == 'b') {
+     drawBrain = !drawBrain;
+  }
+  
+  if (key == 's') {
+    drawSelected = !drawSelected;
+  }
+  
+  if(key == 'u') {
+    selected.update(entities);
   }
 }
