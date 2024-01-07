@@ -19,7 +19,7 @@ class Entity {
   static final float ENERGY_ON_EAT = 175;
 
   // time required to digest prey in milliseconds
-  static final float DIGESTION_TIME = 75;
+  static final float DIGESTION_TIME = 750;
 
   // how long prey need to stay alive to split
   static final float REPRODUCTION_TIME = 8000;
@@ -108,8 +108,10 @@ class Entity {
     direction = normalizeAngle(direction);
     speed = brain.outputs[1].val;
 
-    if (speed <= 0) return;
-
+    if(energy <= 0) {
+      return;
+    }
+    
     float vx = speed * cos(direction);
     float vy = speed * sin(direction);
 
@@ -228,15 +230,14 @@ class Entity {
 
   void update(ArrayList<Entity> entities) {
     updateBrain(entities);
-    if (energy <= 0) {
-      speed = 0;
-    } else {
-      this.move(entities);
-    }
+    this.move(entities);
 
     if (isPredator) {
       if (energy <= 0 || (millis() - birthTime) > PREDATOR_LIFETIME) this.isAlive = false;
-      if (foodConsumed >= 3) this.isSplitting = true;
+      if (foodConsumed >= 3) {
+        foodConsumed = 0;
+        this.isSplitting = true;
+      }
     } else {
       // prey specific updates
       if (speed <= 0) energy++; // figure out units
